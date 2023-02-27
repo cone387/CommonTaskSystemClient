@@ -1,5 +1,5 @@
 import time
-from .thread import ThreadSubscriber
+from .threaded import ThreadSubscriber
 from ..utils.class_loader import load_class
 
 

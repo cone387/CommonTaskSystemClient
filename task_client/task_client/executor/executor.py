@@ -1,7 +1,7 @@
 from cone.utils.classes import ClassManager
 
 
-Executor = ClassManager(path='task_client/executor/executors', unique_keys=['category', 'name'], )
+Executor = ClassManager(name='Executor', unique_keys=['category', 'name'])
 
 
 class BaseExecutor(object):
@@ -12,5 +12,11 @@ class BaseExecutor(object):
         self.task_schedule = task
         self.task = task.task
 
-    def process(self):
+    def run(self):
+        raise NotImplementedError
+
+    def on_success(self):
+        pass
+
+    def on_error(self, error):
         pass

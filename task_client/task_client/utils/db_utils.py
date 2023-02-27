@@ -4,7 +4,11 @@
 # datetime: 2022/10/20 下午5:20
 # software: PyCharm
 import json
+import logging
 from pymysql.err import IntegrityError
+
+
+logger = logging.getLogger(__name__)
 
 
 def build_insert_cmd(table, data: dict, option='insert'):
@@ -30,7 +34,7 @@ def insert_item(conn, cursor, item, table, option='insert') -> int:
         logger.debug("insert duplicate: %s" % item)
         return 2
     except Exception as e:
-        logger.exception("insert failed: %s, cmd is %s" % (e, cmd))
+        logger.exception("insert failed: %s, cmd is %s" % (e, cmd % item))
         return 0
 
 

@@ -20,9 +20,9 @@ SUBSCRIPTION_ENGINE = {
 }
 
 
-DISPATCHER = "task_client.task_center.dispatch.Dispatcher"
-SUBSCRIPTION = "task_client.task_center.subscription.HttpSubscription"
-SUBSCRIBER = "task_client.subscriber.ThreadSubscriber"
+DISPATCHER = "task_system_client.task_center.dispatch.Dispatcher"
+SUBSCRIPTION = "task_system_client.task_center.subscription.HttpSubscription"
+SUBSCRIBER = "task_system_client.subscriber.ThreadSubscriber"
 
 SUBSCRIBER_NUM = 1
 

@@ -18,29 +18,29 @@ class ThreadSubscriber(Thread):
         self.subscription = create_subscription(self.SUBSCRIPTION or SUBSCRIPTION)
 
     def run(self):
-        get_task = self.subscription.get_one
+        get_schedule = self.subscription.get_one
         dispatch = self.dispatcher.dispatch
         self._state.set()
         while self._state.is_set():
             self._state.wait()
             try:
-                task = get_task()
+                schedule = get_schedule()
             except Exception as e:
                 logger.exception("Get task error: %s", e)
                 time.sleep(1)
                 continue
 
             try:
-                executor: BaseExecutor = dispatch(task)
+                executor: BaseExecutor = dispatch(schedule)
             except DispatchError as e:
                 logger.info(e)
             except Exception as e:
-                logger.exception("Dispatch %s error: %s", task, e)
+                logger.exception("Dispatch %s error: %s", schedule, e)
             else:
                 try:
                     executor.run()
                 except Exception as e:
-                    logger.exception("%s run error: %s", task, e)
+                    logger.exception("%s run error: %s", schedule, e)
                     executor.on_error(e)
                 else:
                     executor.on_success()

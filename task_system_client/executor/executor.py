@@ -8,9 +8,9 @@ class BaseExecutor(object):
     category = None
     name = None
 
-    def __init__(self, task):
-        self.task_schedule = task
-        self.task = task.task
+    def __init__(self, schedule):
+        self.schedule = schedule
+        self.task = schedule.task
 
     def run(self):
         raise NotImplementedError

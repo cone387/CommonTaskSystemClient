@@ -36,7 +36,7 @@ class TaskSchedule:
 
     def __init__(self, schedule):
         self.schedule_id = schedule['id']
-        self.schedule_time = schedule['next_schedule_time']
+        self.schedule_time = schedule['schedule_time']
         self.callback = schedule['callback']
         self.task = Task(schedule['task'])
 

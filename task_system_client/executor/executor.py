@@ -1,8 +1,3 @@
-from cone.utils.classes import ClassManager
-
-
-Executor = ClassManager(name='Executor', unique_keys=['category', 'name'])
-
 
 class BaseExecutor(object):
     category = None

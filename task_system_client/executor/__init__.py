@@ -1,2 +1,6 @@
+from task_system_client import settings
+from .executor import BaseExecutor
+from task_system_client.utils.module_loading import import_string
 
-from .executor import Executor, BaseExecutor
+
+Executor = import_string(settings.EXECUTOR)

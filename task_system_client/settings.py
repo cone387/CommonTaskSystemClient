@@ -22,10 +22,16 @@ SUBSCRIPTION_ENGINE = {
 
 DISPATCHER = "task_system_client.task_center.dispatch.Dispatcher"
 SUBSCRIPTION = "task_system_client.task_center.subscription.HttpSubscription"
-SUBSCRIBER = "task_system_client.subscriber.ThreadSubscriber"
 EXECUTOR = "task_system_client.executor.base.CategoryNameExecutor"
 
-SUBSCRIBER_NUM = 1
+SUBSCRIBER = "task_system_client.subscriber.BaseSubscriber"
+
+THREAD_SUBSCRIBER = {
+    "THREAD_NUM": 2,
+    "MAX_QUEUE_SIZE": 1000,
+    "THREAD_CLASS": "task_system_client.subscriber.threaded.ThreadExecutor",
+    "QUEUE": "task_system_client.subscriber.threaded.PriorityQueue",
+}
 
 
 logger = logging.getLogger(__name__)

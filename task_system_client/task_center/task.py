@@ -3,6 +3,7 @@ class Category:
     def __init__(self, category):
         self.name = category['name']
         self.parent = Category(category['parent']) if category.get('parent') else None
+        self.config = category.get('config') or {}
 
 
 class Task:
@@ -11,7 +12,7 @@ class Task:
         self.id = task['id']
         self.name = task['name']
         self.category = Category(task['category'])
-        self.config = task.get('config', {}) or {}
+        self.config = task.get('config') or {}
         self.parent = Task(task['parent']) if task.get('parent') else None
 
         parent = self.parent
@@ -44,3 +45,6 @@ class TaskSchedule:
         return 'TaskSchedule(id=%s, time=%s, task=%s)' % (
             self.schedule_id, self.schedule_time, self.task
         )
+
+    def __hash__(self):
+        return hash("%s-%s" % (self.schedule_id, self.schedule_time))

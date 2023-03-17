@@ -1,5 +1,6 @@
 from queue import PriorityQueue, Empty
 from threading import Lock
+from ..task import TaskSchedule
 
 
 class SubscriptionError(Exception):
@@ -11,7 +12,7 @@ class BaseSubscription:
     queue = PriorityQueue()
     lock = Lock()
 
-    def get_one(self):
+    def get_one(self) -> TaskSchedule:
         try:
             return self.queue.get_nowait()
         except Empty:

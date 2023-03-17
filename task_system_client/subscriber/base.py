@@ -1,7 +1,6 @@
 from threading import Event
 from ..task_center.subscription import create_subscription
-from ..task_center.dispatch import create_dispatcher, DispatchError
-from ..executor import BaseExecutor
+from ..task_center.dispatch import create_dispatcher
 from ..settings import SUBSCRIPTION, DISPATCHER, logger
 import time
 
@@ -21,37 +20,50 @@ class BaseSubscriber(object):
         try:
             executor.run()
         except Exception as e:
-            logger.exception("%s run error: %s", executor.schedule, e)
-            executor.on_error(e)
+            logger.exception("%s run error: %s", executor, e)
+            on_error = getattr(executor, 'on_error', None)
+            if on_error:
+                on_error(e)
         else:
-            executor.on_success()
+            on_success = getattr(executor, 'on_success', None)
+            if on_success:
+                on_success()
+        on_done = getattr(executor, 'on_done', None)
+        if on_done:
+            on_done()
 
-    def on_dispatch_error(self, schedule, e):
-        logger.exception("Dispatch %s error: %s", schedule, e)
+    def on_succeed(self, schedule, executor):
+        logger.info("succeed: %s", executor)
 
-    def on_execute_error(self, executor, e):
-        logger.exception("%s got an unexpected error: %s", executor, e)
+    def on_failed(self, schedule, executor, e):
+        logger.info("failed: %s, %s", executor, e)
+
+    def on_done(self, schedule, executor):
+        logger.info("done: %s", executor)
+
+    def is_runnable(self):
+        return True
 
     def run(self):
         get_schedule = self.subscription.get_one
         dispatch = self.dispatcher.dispatch
+
         while self._state.is_set():
+            time.sleep(0.1)
             try:
+                if not self.is_runnable():
+                    continue
                 schedule = get_schedule()
-            except Exception as e:
-                logger.exception("Get task error: %s", e)
-                time.sleep(1)
-                continue
-            try:
-                executor: BaseExecutor = dispatch(schedule)
-            except Exception as e:
-                self.on_dispatch_error(schedule, e)
-            else:
+                executor = dispatch(schedule)
                 try:
                     self.run_executor(executor)
                 except Exception as e:
-                    self.on_execute_error(executor, e)
-            time.sleep(0.1)
+                    self.on_failed(schedule, executor, e)
+                else:
+                    self.on_succeed(schedule, executor)
+                self.on_done(schedule, executor)
+            except Exception as e:
+                logger.exception("Run error: %s", e)
 
     def start(self):
         self._state.set()

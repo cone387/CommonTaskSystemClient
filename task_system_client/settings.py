@@ -19,6 +19,9 @@ SUBSCRIPTION_ENGINE = {
 
 }
 
+HTTP_UPLOAD_LOG_CALLBACK = {
+    "url": None
+}
 
 DISPATCHER = "task_system_client.task_center.dispatch.Dispatcher"
 SUBSCRIPTION = "task_system_client.task_center.subscription.HttpSubscription"

@@ -11,8 +11,12 @@ class HttpUploadLogCallback(BaseCallback):
     def run(self):
         config = settings.HTTP_UPLOAD_LOG_CALLBACK
         url = config['url']
-        requests.post(
-            url=url,
-            headers=config.get('headers', None),
-            data=self.executor.generate_log(),
-        )
+        try:
+            res = requests.post(
+                url=url,
+                headers=config.get('headers', None),
+                data=self.executor.generate_log(),
+            )
+            settings.logger.info('HttpUploadLogCallback: %s', res.text)
+        except Exception as e:
+            settings.logger.exception('HttpUploadLogCallback error: %s', e)

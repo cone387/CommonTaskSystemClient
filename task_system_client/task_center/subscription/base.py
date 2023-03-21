@@ -1,4 +1,4 @@
-from queue import PriorityQueue, Empty
+from queue import Queue, Empty
 from threading import Lock
 from ..task import TaskSchedule
 
@@ -9,7 +9,7 @@ class SubscriptionError(Exception):
 
 class BaseSubscription:
 
-    queue = PriorityQueue()
+    queue = Queue()
     lock = Lock()
 
     def get_one(self) -> TaskSchedule:

@@ -41,7 +41,10 @@ class BaseSubscriber(object):
     def on_done(self, schedule, executor):
         logger.info("done: %s", executor)
 
-    def is_runnable(self):
+    def is_schedulable(self):
+        return True
+
+    def is_executable(self, schedule):
         return True
 
     def run(self):
@@ -51,10 +54,13 @@ class BaseSubscriber(object):
         while self._state.is_set():
             time.sleep(0.1)
             try:
-                if not self.is_runnable():
+                if not self.is_schedulable():
+                    time.sleep(1)
                     continue
                 schedule = get_schedule()
                 executor = dispatch(schedule)
+                if not self.is_executable(executor):
+                    continue
                 try:
                     self.run_executor(executor)
                 except Exception as e:

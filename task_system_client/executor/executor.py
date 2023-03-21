@@ -1,6 +1,7 @@
 from task_system_client.task_center.task import TaskSchedule
 from .base import ExecuteStatus
 from task_system_client.callback import Callback
+import time
 
 
 class BaseExecutor(object):
@@ -12,13 +13,19 @@ class BaseExecutor(object):
         self.task = schedule.task
         self.result = {}
         self.execute_status = ExecuteStatus.INIT
+        self.create_time = time.time()
+        self.ttl = self.task.config.get('ttl', 60 * 60)
+
+    @property
+    def timeout(self):
+        return time.time() - self.create_time > self.ttl
 
     def generate_log(self):
         return {
             "schedule": self.schedule.schedule_id,
             "status": self.execute_status.value,
             "result": self.result,
-            "schedule_time": self.schedule.schedule_time,
+            "schedule_time": self.schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S'),
         }
 
     def run(self):

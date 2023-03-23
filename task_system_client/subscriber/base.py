@@ -8,6 +8,7 @@ import time
 class BaseSubscriber(object):
     SUBSCRIPTION = None
     DISPATCHER = None
+    block_on_subscription = False
 
     def __init__(self, name='BaseSubscribe'):
         self.name = name
@@ -33,13 +34,13 @@ class BaseSubscriber(object):
             on_done()
 
     def on_succeed(self, schedule, executor):
-        logger.info("succeed: %s", executor)
+        pass
 
     def on_failed(self, schedule, executor, e):
-        logger.info("failed: %s, %s", executor, e)
+        pass
 
     def on_done(self, schedule, executor):
-        logger.info("done: %s", executor)
+        pass
 
     def is_schedulable(self):
         return True
@@ -50,6 +51,7 @@ class BaseSubscriber(object):
     def run(self):
         get_schedule = self.subscription.get_one
         dispatch = self.dispatcher.dispatch
+        block = self.block_on_subscription
 
         while self._state.is_set():
             time.sleep(0.1)
@@ -57,7 +59,9 @@ class BaseSubscriber(object):
                 if not self.is_schedulable():
                     time.sleep(1)
                     continue
-                schedule = get_schedule()
+                schedule = get_schedule(block)
+                if not schedule:
+                    continue
                 executor = dispatch(schedule)
                 if not self.is_executable(executor):
                     continue

@@ -18,7 +18,7 @@ class HttpSubscription(BaseSubscription):
         self.subscription_url = subscription_url
         super(HttpSubscription, self).__init__()
 
-    def get(self):
+    def get(self, block=True):
         try:
             response = requests.get(self.subscription_url)
             if response.status_code == 200:
@@ -32,5 +32,7 @@ class HttpSubscription(BaseSubscription):
                 stdout.flush()
         except Exception as e:
             logger.exception(e)
-        time.sleep(1)
-        return self.get()
+        if block:
+            time.sleep(1)
+            return self.get(block=block)
+        return None

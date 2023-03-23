@@ -15,7 +15,7 @@ class HttpUploadLogCallback(BaseCallback):
             res = requests.post(
                 url=url,
                 headers=config.get('headers', None),
-                data=self.executor.generate_log(),
+                json=self.executor.generate_log(),
             )
             settings.logger.info('HttpUploadLogCallback: %s', res.text)
         except Exception as e:

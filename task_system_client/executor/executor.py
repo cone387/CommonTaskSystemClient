@@ -36,6 +36,7 @@ class BaseExecutor(object):
 
     def on_error(self, error):
         self.execute_status = ExecuteStatus.FAILED
+        self.result['error'] = str(error)
 
     def on_done(self):
         schedule = self.schedule

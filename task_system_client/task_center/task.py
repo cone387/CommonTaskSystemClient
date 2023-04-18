@@ -56,6 +56,7 @@ class TaskSchedule:
         self.schedule_time = datetime.strptime(schedule['schedule_time'], '%Y-%m-%d %H:%M:%S')
         self.callback = schedule['callback']
         self.task = Task(schedule['task'])
+        self.queue = schedule.get('queue', None)
         self.config = schedule.get('config') or {}
 
     def __str__(self):

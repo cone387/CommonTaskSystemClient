@@ -25,6 +25,7 @@ class BaseExecutor(object):
             "schedule": self.schedule.schedule_id,
             "status": self.execute_status.value,
             "result": self.result,
+            "queue": self.schedule.queue,
             "schedule_time": self.schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S'),
         }
 

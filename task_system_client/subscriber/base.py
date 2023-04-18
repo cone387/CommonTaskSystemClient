@@ -61,6 +61,7 @@ class BaseSubscriber(object):
                     continue
                 schedule = get_schedule(block)
                 if not schedule:
+                    time.sleep(1)
                     continue
                 executor = dispatch(schedule)
                 if not self.is_executable(executor):

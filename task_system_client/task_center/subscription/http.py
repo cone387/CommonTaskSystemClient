@@ -27,8 +27,9 @@ class HttpSubscription(BaseSubscription):
                 stdout.write('[%s]no more schedule now, wait 1 second...\r' % time.strftime('%Y-%m-%d %H:%M:%S'))
                 stdout.flush()
             else:
+                # 有可能存在500情况是被nginx代理的，所以输出response.text不会错
                 stdout.write('[%s]get schedule error, status code: %s\n' % (
-                    time.strftime('%Y-%m-%d %H:%M:%S'), response.json()))
+                    time.strftime('%Y-%m-%d %H:%M:%S'), response.text))
                 stdout.flush()
         except Exception as e:
             logger.exception(e)

@@ -14,11 +14,12 @@ class ThreadExecutor(Thread):
     SUBSCRIPTION = None
     DISPATCHER = None
 
-    def __init__(self, queue, on_succeed=None, on_failed=None, on_done=None, name='Subscribe'):
+    def __init__(self, queue, on_succeed=None, on_failed=None, on_done=None, on_exception=None, name='Subscribe'):
         self.queue = queue
         self.on_succeed = on_succeed
         self.on_failed = on_failed
         self.on_done = on_done
+        self.on_exception = on_exception
         super().__init__(name=name, daemon=True)
 
     @classmethod
@@ -39,6 +40,10 @@ class ThreadExecutor(Thread):
             on_done()
 
     def run(self):
+        on_execute_succeed = self.on_succeed
+        on_execute_failed = self.on_failed
+        on_execute_done = self.on_done
+        on_exception = self.on_exception
         while True:
             executor: BaseExecutor = self.queue.get()
             time.sleep(0.1)
@@ -46,15 +51,16 @@ class ThreadExecutor(Thread):
                 try:
                     self.run_executor(executor)
                 except Exception as e:
-                    self.on_failed(executor.schedule, executor, e)
+                    on_execute_failed(executor.schedule, executor, e)
                 else:
-                    self.on_succeed(executor.schedule, executor)
-                self.on_done(executor.schedule, executor)
+                    on_execute_succeed(executor.schedule, executor)
+                on_execute_done(executor.schedule, executor)
             except Exception as e:
-                logger.exception("Run error: %s", e)
+                if on_exception:
+                    on_exception(e)
 
 
-class ThreadSubscriber(BaseSubscriber):
+class FixedThreadSubscriber(BaseSubscriber):
 
     def __init__(self, name=None, queue=None, thread_num=None):
         super().__init__(name=name)
@@ -66,9 +72,9 @@ class ThreadSubscriber(BaseSubscriber):
         self._threads = [self.create_thread(thread_class,
                                             name=f'{self.name}_{i}',
                                             queue=self.queue,
-                                            on_succeed=self.on_succeed,
-                                            on_failed=self.on_failed,
-                                            on_done=self.on_done)
+                                            on_succeed=self.on_execute_succeed,
+                                            on_failed=self.on_execute_failed,
+                                            on_done=self.on_execute_done)
                          for i in range(self.thread_num)]
 
     @classmethod
@@ -81,7 +87,7 @@ class ThreadSubscriber(BaseSubscriber):
         while self._state.is_set():
             time.sleep(0.1)
             try:
-                if not self.is_runnable():
+                if not self.is_schedulable():
                     continue
                 schedule = get_schedule()
                 executor = dispatch(schedule)
@@ -95,4 +101,26 @@ class ThreadSubscriber(BaseSubscriber):
     def start(self):
         for t in self._threads:
             t.start()
-        super(ThreadSubscriber, self).start()
+        super(FixedThreadSubscriber, self).start()
+
+
+class ThreadPoolSubscriber(BaseSubscriber):
+
+    def __init__(self, name=None):
+        super(ThreadPoolSubscriber, self).__init__(name=name)
+        self._threads = []
+
+    def is_schedulable(self):
+        n = len(self._threads)
+        if n < settings.SEMAPHORE:
+            return True
+        for t in range(n)[::-1]:
+            if not self._threads[t].is_alive():
+                self._threads.pop(t)
+                return True
+        return False
+
+    def run_executor(self, executor):
+        thread = Thread(target=self.execute, args=(executor,), daemon=True)
+        thread.start()
+        self._threads.append(thread)

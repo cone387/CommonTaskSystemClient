@@ -2,6 +2,7 @@ from threading import Event
 from ..task_center.subscription import create_subscription
 from ..task_center.dispatch import create_dispatcher
 from ..settings import SUBSCRIPTION, DISPATCHER, logger
+from ..handler import ExceptionHandler, BaseHandler
 import time
 
 
@@ -16,8 +17,11 @@ class BaseSubscriber(object):
         self.start_time = time.time()
         self.dispatcher = create_dispatcher(self.DISPATCHER or DISPATCHER)
         self.subscription = create_subscription(self.SUBSCRIPTION or SUBSCRIPTION)
+        self.exception_handler = None
+        if ExceptionHandler is not None:
+            self.exception_handler: BaseHandler = ExceptionHandler()
 
-    def run_executor(self, executor):
+    def run_synchronous(self, executor):
         try:
             executor.run()
         except Exception as e:
@@ -33,19 +37,36 @@ class BaseSubscriber(object):
         if on_done:
             on_done()
 
-    def on_succeed(self, schedule, executor):
+    def execute(self, executor):
+        try:
+            self.run_synchronous(executor)
+        except Exception as e:
+            self.on_execute_failed(executor.schedule, executor, e)
+        else:
+            self.on_execute_succeed(executor.schedule, executor)
+        self.on_execute_done(executor.schedule, executor)
+
+    def run_executor(self, executor):
+        self.execute(executor)
+
+    def on_execute_succeed(self, schedule, executor):
         pass
 
-    def on_failed(self, schedule, executor, e):
+    def on_execute_failed(self, schedule, executor, e):
         pass
 
-    def on_done(self, schedule, executor):
+    def on_execute_done(self, schedule, executor):
         pass
+
+    def on_exception(self, e):
+        logger.exception("Subscriber %s error: %s", self.name, e)
+        if self.exception_handler:
+            self.exception_handler.handle(e)
 
     def is_schedulable(self):
         return True
 
-    def is_executable(self, schedule):
+    def is_executable(self, executor):
         return True
 
     def run(self):
@@ -66,15 +87,9 @@ class BaseSubscriber(object):
                 executor = dispatch(schedule)
                 if not self.is_executable(executor):
                     continue
-                try:
-                    self.run_executor(executor)
-                except Exception as e:
-                    self.on_failed(schedule, executor, e)
-                else:
-                    self.on_succeed(schedule, executor)
-                self.on_done(schedule, executor)
+                self.run_executor(executor)
             except Exception as e:
-                logger.exception("Run error: %s", e)
+                self.on_exception(e)
 
     def start(self):
         self._state.set()

@@ -36,6 +36,12 @@ THREAD_SUBSCRIBER = {
     "QUEUE": "task_system_client.subscriber.threaded.PriorityQueue",
 }
 
+# 异常处理
+EXCEPTION_HANDLER = "task_system_client.handler.exception.ExceptionHandler"
+EXCEPTION_REPORT_URL = None
+
+# 并发控制， 为None则不限制
+SEMAPHORE = 10
 
 logger = logging.getLogger(__name__)
 BASIC_FORMAT = "[%(asctime)s][%(levelname)s]%(message)s"
@@ -59,4 +65,3 @@ if env_settings:
     for key in dir(settings):
         if key.isupper():
             globals()[key] = getattr(settings, key)
-

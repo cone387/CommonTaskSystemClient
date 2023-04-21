@@ -1,5 +1,5 @@
 from .base import BaseSubscriber
-from .threaded import ThreadSubscriber
+from .threaded import ThreadPoolSubscriber, FixedThreadSubscriber
 from ..utils.class_loader import load_class
 
 

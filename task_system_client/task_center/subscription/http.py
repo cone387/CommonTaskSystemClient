@@ -23,7 +23,7 @@ class HttpSubscription(BaseSubscription):
             response = requests.get(self.subscription_url)
             if response.status_code == 200:
                 return TaskSchedule(response.json())
-            elif response.status_code == 204:
+            elif response.status_code == 202:
                 stdout.write('[%s]no more schedule now, wait 1 second...\r' % time.strftime('%Y-%m-%d %H:%M:%S'))
                 stdout.flush()
             else:

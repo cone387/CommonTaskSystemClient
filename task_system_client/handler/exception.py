@@ -23,8 +23,9 @@ class ExceptionHandler(BaseHandler):
 
 
 class HttpExceptionUpload(ExceptionHandler):
+    name = 'http_exception_upload'
 
     def process(self, e):
         return requests.post(settings.EXCEPTION_REPORT_URL, json={
-            'error': str(e),
+            'content': str(e),
         }).text

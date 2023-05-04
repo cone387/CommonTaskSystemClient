@@ -58,6 +58,7 @@ class TaskSchedule:
         self.task = Task(schedule['task'])
         self.queue = schedule.get('queue', None)
         self.config = schedule.get('config') or {}
+        self.content = schedule
 
     def __str__(self):
         return 'TaskSchedule(id=%s, time=%s, task=%s)' % (

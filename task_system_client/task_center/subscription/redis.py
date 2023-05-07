@@ -15,8 +15,8 @@ class RedisSubscription(BaseSubscription):
         self.client = redis.Redis(**self.engine)
         super(RedisSubscription, self).__init__()
 
-    def get(self):
-        return self.client.get(self.queue)
+    def request(self):
+        return self.client.blpop(self.queue)
 
     def stop(self):
         self.client.close()

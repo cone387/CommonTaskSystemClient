@@ -15,7 +15,7 @@ class SqlSubscription(BaseSubscription):
         self.cursor = self.connection.cursor()
         super(SqlSubscription, self).__init__()
 
-    def get(self):
+    def request(self):
         self.cursor.execute(self.schedule)
         return self.cursor.fetchall()
 

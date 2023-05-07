@@ -111,14 +111,18 @@ class ThreadPoolSubscriber(BaseSubscriber):
         self._threads = []
 
     def is_schedulable(self):
+        return self.subscription.qsize() < settings.SEMAPHORE
+
+    def is_executable(self, executor):
         n = len(self._threads)
         if n < settings.SEMAPHORE:
             return True
+        free = False
         for t in range(n)[::-1]:
             if not self._threads[t].is_alive():
                 self._threads.pop(t)
-                return True
-        return False
+                free = True
+        return free
 
     def run_executor(self, executor):
         thread = Thread(target=self.execute, args=(executor,), daemon=True)

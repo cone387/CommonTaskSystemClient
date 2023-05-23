@@ -3,6 +3,7 @@ from ..task_center.subscription import create_subscription
 from ..task_center.dispatch import create_dispatcher
 from ..settings import SUBSCRIPTION, DISPATCHER, logger
 from ..handler import ExceptionHandler, BaseHandler
+from ..executor.base import EmptyResult, NoRetryException, ExecuteStatus
 import time
 
 
@@ -24,12 +25,20 @@ class BaseSubscriber(object):
     def run_synchronous(self, executor):
         try:
             executor.run()
+        except EmptyResult:
+            executor.execute_status = ExecuteStatus.EMPTY.value
+        except NoRetryException as e:
+            executor.execute_status = ExecuteStatus.ERROR_BUT_NO_RETRY.value
+            executor.result['error'] = str(e)
         except Exception as e:
+            executor.execute_status = ExecuteStatus.FAILED.value
+            executor.result['error'] = str(e)
             logger.exception("%s run error: %s", executor, e)
             on_error = getattr(executor, 'on_error', None)
             if on_error:
                 on_error(e)
         else:
+            executor.execute_status = ExecuteStatus.SUCCEED.value
             on_success = getattr(executor, 'on_success', None)
             if on_success:
                 on_success()

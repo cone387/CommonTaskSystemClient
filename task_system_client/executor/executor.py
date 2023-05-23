@@ -11,7 +11,9 @@ class BaseExecutor(object):
     def __init__(self, schedule: TaskSchedule):
         self.schedule = schedule
         self.task = schedule.task
-        self.result = {}
+        self.result = {
+            'generator': self.schedule.generator,
+        }
         self.execute_status = ExecuteStatus.INIT
         self.create_time = time.time()
         self.ttl = self.task.config.get('ttl', 60 * 60)
@@ -33,11 +35,10 @@ class BaseExecutor(object):
         raise NotImplementedError
 
     def on_success(self):
-        self.execute_status = ExecuteStatus.SUCCEED
+        pass
 
     def on_error(self, error):
-        self.execute_status = ExecuteStatus.FAILED
-        self.result['error'] = str(error)
+        pass
 
     def on_done(self):
         schedule = self.schedule

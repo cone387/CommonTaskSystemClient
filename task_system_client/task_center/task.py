@@ -59,6 +59,7 @@ class TaskSchedule:
         self.queue = schedule.get('queue', None)
         self.config = schedule.get('config') or {}
         self.generator = schedule.get('generator', None)
+        self.last_log = schedule.get('last_log', None)
         self.content = schedule
 
     def __str__(self):

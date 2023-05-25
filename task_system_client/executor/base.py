@@ -17,6 +17,10 @@ class NoRetryException(Exception):
     pass
 
 
+class TimeoutException(Exception):
+    pass
+
+
 class ExecuteStatus(str, Enum):
     INIT = 'I'
     RUNNING = 'R'

@@ -1,5 +1,5 @@
 from .dispatcher import Dispatcher, DispatchError
-from ...utils.class_loader import load_class
+from task_system_client.utils.class_loader import load_class
 
 
 def get_dispatcher_cls(dispatch=None):

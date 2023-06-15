@@ -14,4 +14,9 @@ setup(
     license='MIT',
     url='https://github.com/cone387/CommonTaskSystemClent',
     python_requires='>=3.7, <4',
+    entry_points={
+        'console_scripts': [
+            'common-task-system-client=task_system_client.main:start_task_system',
+        ],
+    },
 )

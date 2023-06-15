@@ -99,7 +99,7 @@ class BaseSubscriber(object):
                 if self.is_executable(executor):
                     self.run_executor(executor)
                 else:
-                    self.subscription.put(executor.schedule)
+                    subscription.put(executor.schedule)
             except Exception as e:
                 self.on_exception(e)
 

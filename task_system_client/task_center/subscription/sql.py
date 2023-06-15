@@ -21,4 +21,3 @@ class SqlSubscription(BaseSubscription):
 
     def stop(self):
         self.connection.close()
-

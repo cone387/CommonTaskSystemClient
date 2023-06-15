@@ -2,9 +2,28 @@ from cone.utils.classes import ClassManager
 from enum import Enum
 
 
-CategoryNameExecutor = ClassManager(name='CategoryNameExecutor', unique_keys=['category', 'name'])
+CategoryNameExecutor = ClassManager(
+    path='task_system_client.executor.system',
+    name='CategoryNameExecutor',
+    unique_keys=['category', 'name']
+)
 
-NameExecutor = ClassManager(name='NameExecutor', unique_keys=['name'])
+CategoryParentNameExecutor = ClassManager(
+    path='task_system_client.executor.system',
+    name='CategoryParentNameExecutor',
+    unique_keys=['category', 'parent', 'name']
+)
+
+ParentNameExecutor = ClassManager(
+    path='task_system_client.executor.system',
+    name='ParentNameExecutor',
+    unique_keys=['parent', 'name']
+)
+
+NameExecutor = ClassManager(
+    path='task_system_client.executor.system',
+    name='NameExecutor', unique_keys=['name']
+)
 
 
 # 执行成功了，但是没有结果

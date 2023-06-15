@@ -7,7 +7,6 @@ import logging
 import time
 from sys import stdout
 from typing import Union
-
 from .base import BaseSubscription
 from ..task import TaskSchedule
 

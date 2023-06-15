@@ -80,4 +80,3 @@ def delete(conn, table, default_where=None, **where):
     conn.close()
     logger.debug("delete %s rows from %s where %s" % (r, table, ' and '.join(children)))
     return r
-

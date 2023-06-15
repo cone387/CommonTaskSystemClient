@@ -1,6 +1,4 @@
 from cone.utils.classes import ClassManager
-from task_system_client.executor.base import ExecuteStatus
-from typing import List
 
 Callback = ClassManager(path='task_system_client.callback.callbacks', name='CallbackManager', unique_keys=['name'])
 

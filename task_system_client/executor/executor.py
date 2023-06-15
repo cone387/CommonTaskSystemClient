@@ -1,5 +1,5 @@
 from task_system_client.task_center.task import TaskSchedule
-from .base import ExecuteStatus
+from task_system_client.executor.base import ExecuteStatus
 from task_system_client.callback import Callback
 import time
 

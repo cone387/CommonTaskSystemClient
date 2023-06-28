@@ -1,10 +1,17 @@
 import logging
+import argparse
+
+parser = argparse.ArgumentParser("task_system_client")
+parser.add_argument('-s', '--settings', type=str, help='settings module env(TASK_CLIENT_SETTINGS_MODULE)')
+parser.add_argument('-p', '--path', type=str, help='executor path')
+parser.add_argument('--http-queue-url', type=str, help='http queue url')
+parser.add_argument('--semaphore', type=int, help='semaphore', default=10)
+args = parser.parse_args()
+
 
 SUBSCRIPTION_ENGINE = {
     "HttpSubscription": {
-        # "subscription_url": "https://api.cone387.top/t/queue/next/",
-        # "subscription_url": "http://127.0.0.1:8000/t/schedule/queue/get/",
-        # "subscription_url": "http://cone387.top:9000/t/schedule/queue/get/",
+        "subscription_url": args.http_queue_url,
     },
 
     "RedisSubscription": {
@@ -23,9 +30,9 @@ HTTP_UPLOAD_LOG_CALLBACK = {
     "url": None
 }
 
-DISPATCHER = "task_system_client.task_center.dispatch.Dispatcher"
+DISPATCHER = "task_system_client.task_center.dispatch.CategoryParentAndOptionalNameDispatcher"
 SUBSCRIPTION = "task_system_client.task_center.subscription.HttpSubscription"
-EXECUTOR = "task_system_client.executor.base.CategoryNameExecutor"
+EXECUTOR = "task_system_client.executor.base.CategoryParentNameExecutor"
 
 SUBSCRIBER = "task_system_client.subscriber.BaseSubscriber"
 
@@ -41,7 +48,7 @@ EXCEPTION_HANDLER = "task_system_client.handler.exception.ExceptionHandler"
 EXCEPTION_REPORT_URL = None
 
 # 并发控制， 为None则不限制
-SEMAPHORE = 10
+SEMAPHORE = args.semaphore
 
 logger = logging.getLogger(__name__)
 BASIC_FORMAT = "[%(asctime)s][%(levelname)s]%(message)s"
@@ -65,3 +72,19 @@ if env_settings:
     for key in dir(settings):
         if key.isupper():
             globals()[key] = getattr(settings, key)
+
+
+# check params
+if SUBSCRIPTION == "task_system_client.task_center.subscription.HttpSubscription":
+    assert SUBSCRIPTION_ENGINE['HttpSubscription']['subscription_url'], \
+        "subscription_url is required when using HttpSubscription, " \
+        "use --http-queue-url to set it or specify it in settings.py"
+elif SUBSCRIPTION == "task_system_client.task_center.subscription.RedisSubscription":
+    assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['host'], \
+        "redis host is required when using RedisSubscription"
+    assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['port'], \
+        "redis port is required when using RedisSubscription"
+    assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['db'], \
+        "redis db is required when using RedisSubscription"
+    assert SUBSCRIPTION_ENGINE['RedisSubscription']['queue'], \
+        "redis queue is required when using RedisSubscription"

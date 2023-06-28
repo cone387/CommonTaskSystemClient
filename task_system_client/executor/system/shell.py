@@ -5,7 +5,7 @@ from task_system_client.executor import BaseExecutor, Executor
 
 @Executor()
 class ShellExecutor(BaseExecutor):
-    name = 'Shell执行'
+    parent = 'Shell执行'
 
     def run(self):
         if sys.platform == 'win32':

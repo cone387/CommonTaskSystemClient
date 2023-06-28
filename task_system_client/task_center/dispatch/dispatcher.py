@@ -1,6 +1,5 @@
 from task_system_client.executor import BaseExecutor, Executor
 from task_system_client.task_center.task import TaskSchedule
-from task_system_client.executor import Executor
 
 
 class ExecutorNotFound(KeyError):
@@ -16,7 +15,8 @@ class BaseDispatcher:
 
     def __init__(self):
         if sorted(self.unique_keys) != sorted(Executor.unique_keys):
-            raise ValueError('Dispatcher unique_keys must be equal to Executor.unique_keys')
+            raise ValueError(f'Dispatcher unique_keys({self.unique_keys}) must be equal '
+                             f'to Executor.unique_keys({Executor.unique_keys})')
 
     def dispatch(self, schedule: TaskSchedule) -> 'BaseExecutor':
         raise NotImplementedError

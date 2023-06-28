@@ -6,6 +6,7 @@ import time
 
 class BaseExecutor(object):
     category = None
+    parent = None
     name = None
 
     def __init__(self, schedule: TaskSchedule):

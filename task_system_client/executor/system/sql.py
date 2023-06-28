@@ -4,7 +4,7 @@ import pymysql
 
 @Executor()
 class SqlExecutor(BaseExecutor):
-    name = 'SQL执行'
+    parent = 'SQL执行'
 
     def run(self):
         result = []

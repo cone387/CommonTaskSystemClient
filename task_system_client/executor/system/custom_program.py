@@ -147,7 +147,7 @@ class ShellExecutor(ProgramExecutor):
 
 @Executor()
 class CustomProgramExecutor(BaseExecutor):
-    name = '自定义程序'
+    parent = '自定义程序'
 
     def run(self):
         custom_program = self.schedule.task.config.get('custom_program')

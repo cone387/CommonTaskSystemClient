@@ -1,14 +1,10 @@
-import argparse
 import os
 from task_system_client.subscriber import create_subscriber
+from task_system_client.settings import args
 from cone.hooks.exception import setSysExceptHook
 
 
 def start_task_system():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--settings', type=str, help='settings module env(TASK_CLIENT_SETTINGS_MODULE)')
-    parser.add_argument('-p', '--path', type=str, help='executor path')
-    args = parser.parse_args()
     if args.path:
         import sys
         import shutil

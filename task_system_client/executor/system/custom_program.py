@@ -5,7 +5,8 @@ import subprocess
 import sys
 
 from executor.base import NoRetryException
-from task_system_client.executor import Executor, BaseExecutor
+from task_system_client.executor import Executor
+from task_system_client.executor.system import SystemExecutor
 
 SYS_ENCODING = sys.getdefaultencoding()
 
@@ -146,7 +147,7 @@ class ShellExecutor(ProgramExecutor):
 
 
 @Executor()
-class CustomProgramExecutor(BaseExecutor):
+class CustomProgramExecutor(SystemExecutor):
     parent = '自定义程序'
 
     def run(self):

@@ -30,9 +30,9 @@ HTTP_UPLOAD_LOG_CALLBACK = {
     "url": None
 }
 
-DISPATCHER = "task_system_client.task_center.dispatch.CategoryParentAndOptionalNameDispatcher"
+DISPATCHER = "task_system_client.task_center.dispatch.ParentAndOptionalNameDispatcher"
 SUBSCRIPTION = "task_system_client.task_center.subscription.HttpSubscription"
-EXECUTOR = "task_system_client.executor.base.CategoryParentNameExecutor"
+EXECUTOR = "task_system_client.executor.base.ParentNameExecutor"
 
 SUBSCRIBER = "task_system_client.subscriber.BaseSubscriber"
 
@@ -79,6 +79,12 @@ if SUBSCRIPTION == "task_system_client.task_center.subscription.HttpSubscription
     assert SUBSCRIPTION_ENGINE['HttpSubscription']['subscription_url'], \
         "subscription_url is required when using HttpSubscription, " \
         "use --http-queue-url to set it or specify it in settings.py"
+    if not HTTP_UPLOAD_LOG_CALLBACK['url']:
+        import re
+        HTTP_UPLOAD_LOG_CALLBACK['url'] = re.sub(r'schedule/.*', 'schedule-log/',
+                                                 SUBSCRIPTION_ENGINE['HttpSubscription']['subscription_url'])
+        logger.info("HTTP_UPLOAD_LOG_CALLBACK['url'] is not set, use default: %s" % HTTP_UPLOAD_LOG_CALLBACK['url'])
+
 elif SUBSCRIPTION == "task_system_client.task_center.subscription.RedisSubscription":
     assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['host'], \
         "redis host is required when using RedisSubscription"

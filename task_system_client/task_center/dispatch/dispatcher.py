@@ -115,7 +115,7 @@ class CategoryParentAndOptionalNameDispatcher(BaseDispatcher):
             return Executor(schedule=schedule, **params)
         except KeyError:
             try:
-                params.pop('name')
+                params['name'] = None
                 return Executor(schedule=schedule, **params)
             except KeyError:
                 error = 'Dispatch error, no executor for task: %s' % schedule

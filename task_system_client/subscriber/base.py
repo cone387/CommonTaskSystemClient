@@ -24,10 +24,10 @@ class BaseSubscriber(object):
 
     def run_synchronous(self, executor):
         try:
-            executor.run()
+            executor.result['logs'] = executor.run()
         except EmptyResult:
             executor.execute_status = ExecuteStatus.EMPTY
-        except NoRetryException as e:
+        except (NoRetryException, NotImplementedError) as e:
             executor.execute_status = ExecuteStatus.ERROR_BUT_NO_RETRY
             executor.result['error'] = str(e)
         except TimeoutException as e:

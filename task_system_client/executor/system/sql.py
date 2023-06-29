@@ -1,9 +1,11 @@
-from task_system_client.executor import BaseExecutor, Executor
+from task_system_client.executor import Executor
+from task_system_client.executor.system import SystemExecutor
+from task_system_client.executor.base import NoRetryException
 import pymysql
 
 
 @Executor()
-class SqlExecutor(BaseExecutor):
+class SqlExecutor(SystemExecutor):
     parent = 'SQL执行'
 
     def run(self):
@@ -13,7 +15,7 @@ class SqlExecutor(BaseExecutor):
         required_fields = ['host', 'user', 'password', 'db']
         for field in required_fields:
             if field not in sql_config:
-                raise Exception(f'config {field} is required')
+                raise NoRetryException(f'config {field} is required')
         connection = pymysql.connect(**sql_config)
         with connection.cursor() as cursor:
             for sql in commands:

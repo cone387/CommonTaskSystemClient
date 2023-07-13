@@ -16,6 +16,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python get-pip.py
 
 ## 2. 安装依赖
+RUN pip install common-task-system-client
 RUN pip config --global set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install py-cone>=1.0.8
 RUN pip install requests

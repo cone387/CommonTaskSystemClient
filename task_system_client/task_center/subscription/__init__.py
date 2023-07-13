@@ -1,14 +1,13 @@
-from .http import HttpSubscription
-from .base import SubscriptionError, BaseSubscription
-from ...utils.class_loader import load_class
-from ...settings import SUBSCRIPTION_ENGINE
+from .base import SubscriptionError, Subscription
+from task_system_client.utils.class_loader import load_class
+from task_system_client import settings
 from typing import Any
 
 
 def get_subscription_cls(subscription: Any):
-    return load_class(subscription, HttpSubscription)
+    return load_class(subscription, Subscription)
 
 
-def create_subscription(subscription: Any) -> BaseSubscription:
+def create_subscription(subscription: Any) -> Subscription:
     cls = get_subscription_cls(subscription)
-    return cls(**SUBSCRIPTION_ENGINE.get(cls.__name__, {}))
+    return cls(settings.SUBSCRIPTION_URL, **settings.SUBSCRIPTION_KWARGS)

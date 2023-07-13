@@ -7,20 +7,20 @@ import logging
 import time
 from sys import stdout
 from typing import Union
-from .base import BaseSubscription
+from .base import Subscription
 from ..task import TaskSchedule
 
 logger = logging.getLogger(__name__)
 
 
-class HttpSubscription(BaseSubscription):
+class HttpSubscription(Subscription):
 
-    def __init__(self, subscription_url):
-        self.subscription_url = subscription_url
-        super(HttpSubscription, self).__init__()
+    @classmethod
+    def processable(cls, url) -> bool:
+        return url.startswith('http')
 
     def request(self) -> Union[TaskSchedule, None]:
-        response = requests.get(self.subscription_url)
+        response = requests.get(self.url, timeout=5)
         if response.status_code == 200:
             return TaskSchedule(response.json())
         elif response.status_code == 202:

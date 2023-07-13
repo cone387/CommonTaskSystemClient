@@ -9,29 +9,15 @@ parser.add_argument('--semaphore', type=int, help='semaphore', default=10)
 args = parser.parse_args()
 
 
-SUBSCRIPTION_ENGINE = {
-    "HttpSubscription": {
-        "subscription_url": args.http_queue_url,
-    },
-
-    "RedisSubscription": {
-        "engine": {
-            "host": "",
-            "port": 6379,
-            "db": 0,
-            "password": "",
-        },
-        "queue": "task_queue",
-    },
-
-}
+SUBSCRIPTION_URL = args.http_queue_url
+SUBSCRIPTION_KWARGS = {}
 
 HTTP_UPLOAD_LOG_CALLBACK = {
     "url": None
 }
 
 DISPATCHER = "task_system_client.task_center.dispatch.ParentAndOptionalNameDispatcher"
-SUBSCRIPTION = "task_system_client.task_center.subscription.HttpSubscription"
+SUBSCRIPTION = "task_system_client.task_center.subscription.Subscription"
 EXECUTOR = "task_system_client.executor.base.ParentNameExecutor"
 
 SUBSCRIBER = "task_system_client.subscriber.BaseSubscriber"
@@ -75,22 +61,11 @@ if env_settings:
 
 
 # check params
+assert SUBSCRIPTION_URL, "subscription_url is required, use --http-queue-url to set it or specify it in settings.py"
 if SUBSCRIPTION == "task_system_client.task_center.subscription.HttpSubscription":
-    assert SUBSCRIPTION_ENGINE['HttpSubscription']['subscription_url'], \
-        "subscription_url is required when using HttpSubscription, " \
-        "use --http-queue-url to set it or specify it in settings.py"
     if not HTTP_UPLOAD_LOG_CALLBACK['url']:
         import re
         HTTP_UPLOAD_LOG_CALLBACK['url'] = re.sub(r'schedule/.*', 'schedule-log/',
-                                                 SUBSCRIPTION_ENGINE['HttpSubscription']['subscription_url'])
+                                                 SUBSCRIPTION_URL)
         logger.info("HTTP_UPLOAD_LOG_CALLBACK['url'] is not set, use default: %s" % HTTP_UPLOAD_LOG_CALLBACK['url'])
 
-elif SUBSCRIPTION == "task_system_client.task_center.subscription.RedisSubscription":
-    assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['host'], \
-        "redis host is required when using RedisSubscription"
-    assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['port'], \
-        "redis port is required when using RedisSubscription"
-    assert SUBSCRIPTION_ENGINE['RedisSubscription']['engine']['db'], \
-        "redis db is required when using RedisSubscription"
-    assert SUBSCRIPTION_ENGINE['RedisSubscription']['queue'], \
-        "redis queue is required when using RedisSubscription"

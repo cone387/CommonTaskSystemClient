@@ -3,7 +3,7 @@ import zipfile
 import shutil
 import subprocess
 import sys
-
+import docker
 from executor.base import NoRetryException
 from task_system_client.executor import Executor
 from task_system_client.executor.system import SystemExecutor
@@ -76,25 +76,18 @@ class Docker:
         self.working_path = '/home/admin/task-system-client'
         self.logs = []
 
-    def build_image(self):
-        cmd = 'docker pull %s' % self.image
-        succeed, logs = run_in_subprocess(cmd)
-        if not succeed:
-            raise NoRetryException('Failed to build docker image %s, %s' % (self.image, '\n'.join(logs)))
-        self.logs = logs
-
-    def start_container(self):
-        cmd = 'docker run --rm -v %s:%s %s %s' % (
-            self.program.working_path, self.working_path, self.image,
-            self.program.entrypoint.replace(self.program.working_path, self.working_path).replace(os.sep, '/'))
-        succeed, logs = run_in_subprocess(cmd)
-        if not succeed:
-            raise NoRetryException('Failed to start docker container %s, %s' % (self.image, '\n'.join(logs)))
-        self.logs = logs
-
     def run(self):
-        self.build_image()
-        self.start_container()
+        client = docker.from_env()
+        # auto_remove similar to --rm
+        # detach similar to -d, so detach and auto_remove can't be True at the same time
+        self.logs = client.containers.run(
+            self.image,
+            command=self.program.entrypoint.replace(self.program.working_path, self.working_path).replace(os.sep, '/'),
+            # auto_remove=True,
+            remove=True,
+            volumes=["%s:%s" % (self.program.working_path, self.working_path)],
+            detach=False
+        ).decode()
 
 
 class PythonExecutor(ProgramExecutor):
@@ -168,9 +161,9 @@ class CustomProgramExecutor(SystemExecutor):
             program = ProgramExecutor(working_path, file=program_file, args=args)
             program.prepare()
             if run_in_docker:
-                docker = Docker(program, image=docker_image)
-                docker.run()
-                logs = docker.logs
+                container = Docker(program, image=docker_image)
+                container.run()
+                logs = container.logs
             else:
                 program.assert_runnable()
                 logs = program.run()

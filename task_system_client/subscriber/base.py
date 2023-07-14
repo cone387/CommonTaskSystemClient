@@ -2,7 +2,7 @@ from threading import Event
 from ..task_center.subscription import create_subscription
 from ..task_center.dispatch import create_dispatcher
 from ..settings import SUBSCRIPTION, DISPATCHER, logger
-from ..handler import ExceptionHandler, BaseHandler
+from ..handler import create_exception_handler
 from ..executor.base import EmptyResult, NoRetryException, ExecuteStatus, TimeoutException
 import time
 
@@ -18,9 +18,7 @@ class BaseSubscriber(object):
         self.start_time = time.time()
         self.dispatcher = create_dispatcher(self.DISPATCHER or DISPATCHER)
         self.subscription = create_subscription(self.SUBSCRIPTION or SUBSCRIPTION)
-        self.exception_handler = None
-        if ExceptionHandler is not None:
-            self.exception_handler: BaseHandler = ExceptionHandler()
+        self.exception_handler = create_exception_handler()
 
     def run_synchronous(self, executor):
         try:
@@ -71,9 +69,7 @@ class BaseSubscriber(object):
         pass
 
     def on_exception(self, e):
-        logger.exception("Subscriber %s error: %s", self.name, e)
-        if self.exception_handler:
-            self.exception_handler.handle(e)
+        self.exception_handler.handle(e)
 
     def is_schedulable(self):
         return True

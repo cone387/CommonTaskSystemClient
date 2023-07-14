@@ -1,6 +1,9 @@
 import requests
 from .base import BaseHandler
 from task_system_client import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ExceptionHandler(BaseHandler):
@@ -8,9 +11,13 @@ class ExceptionHandler(BaseHandler):
 
     def __init__(self, expected=None):
         self.expected = expected or [Exception]
+        self.validate()
+
+    def validate(self):
+        pass
 
     def process(self, e):
-        pass
+        logger.exception(e)
 
     def handle(self, e):
         for p in self.expected:
@@ -25,7 +32,18 @@ class ExceptionHandler(BaseHandler):
 class HttpExceptionUpload(ExceptionHandler):
     name = 'http_exception_upload'
 
+    def validate(self):
+        assert settings.EXCEPTION_REPORT_URL, "EXCEPTION_REPORT_URL is not set"
+
     def process(self, e):
-        return requests.post(settings.EXCEPTION_REPORT_URL, json={
-            'content': str(e),
-        }).text
+        logger.exception(e)
+        try:
+            response = requests.post(settings.EXCEPTION_REPORT_URL, json={
+                'content': str(e),
+            })
+            if response.status_code != 201:
+                logger.error("Upload exception error: %s", response.text)
+            else:
+                logger.info("Upload exception succeed: %s", response.text)
+        except Exception as e:
+            logger.exception("Upload exception error: %s", e)

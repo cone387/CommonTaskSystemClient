@@ -4,12 +4,12 @@ import argparse
 parser = argparse.ArgumentParser("task_system_client")
 parser.add_argument('-s', '--settings', type=str, help='settings module env(TASK_CLIENT_SETTINGS_MODULE)')
 parser.add_argument('-p', '--path', type=str, help='executor path')
-parser.add_argument('--http-queue-url', type=str, help='http queue url')
+parser.add_argument('-i', '--subscription-url', type=str, help='订阅地址')
 parser.add_argument('--semaphore', type=int, help='semaphore', default=10)
 args = parser.parse_args()
 
 
-SUBSCRIPTION_URL = args.http_queue_url
+SUBSCRIPTION_URL = args.subscription_url
 SUBSCRIPTION_KWARGS = {}
 
 HTTP_UPLOAD_LOG_CALLBACK = {
@@ -30,7 +30,7 @@ THREAD_SUBSCRIBER = {
 }
 
 # 异常处理
-EXCEPTION_HANDLER = "task_system_client.handler.exception.ExceptionHandler"
+EXCEPTION_HANDLER = "task_system_client.handler.exception.HttpExceptionUpload"
 EXCEPTION_REPORT_URL = None
 
 # 并发控制， 为None则不限制
@@ -61,11 +61,13 @@ if env_settings:
 
 
 # check params
-assert SUBSCRIPTION_URL, "subscription_url is required, use --http-queue-url to set it or specify it in settings.py"
-if SUBSCRIPTION == "task_system_client.task_center.subscription.HttpSubscription":
+assert SUBSCRIPTION_URL, "subscription_url is required, use --subscription-url to set it or specify it in settings.py"
+if SUBSCRIPTION_URL.startswith('http'):
+    import re
     if not HTTP_UPLOAD_LOG_CALLBACK['url']:
-        import re
-        HTTP_UPLOAD_LOG_CALLBACK['url'] = re.sub(r'schedule/.*', 'schedule-log/',
-                                                 SUBSCRIPTION_URL)
+        HTTP_UPLOAD_LOG_CALLBACK['url'] = re.sub(r'schedule/.*', 'schedule-log/', SUBSCRIPTION_URL)
         logger.info("HTTP_UPLOAD_LOG_CALLBACK['url'] is not set, use default: %s" % HTTP_UPLOAD_LOG_CALLBACK['url'])
+    if EXCEPTION_REPORT_URL is None and EXCEPTION_HANDLER == "task_system_client.handler.exception.HttpExceptionUpload":
+        EXCEPTION_REPORT_URL = re.sub(r'schedule/.*', 'exception/', SUBSCRIPTION_URL)
+        logger.info("EXCEPTION_REPORT_URL is not set, use default: %s" % EXCEPTION_REPORT_URL)
 

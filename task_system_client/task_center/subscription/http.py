@@ -20,7 +20,7 @@ class HttpSubscription(Subscription):
         return url.startswith('http')
 
     def request(self) -> Union[TaskSchedule, None]:
-        response = requests.get(self.url, timeout=5)
+        response = requests.get(self.url, timeout=5, **self.kwargs)
         if response.status_code == 200:
             return TaskSchedule(response.json())
         elif response.status_code == 202:

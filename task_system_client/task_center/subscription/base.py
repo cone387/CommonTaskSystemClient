@@ -3,6 +3,7 @@ from threading import Lock
 from ..task import TaskSchedule
 from typing import Union
 from task_system_client.settings import logger, SEMAPHORE
+from task_system_client.utils import url as url_utils
 
 
 class SubscriptionError(Exception):
@@ -29,7 +30,7 @@ def load_subscriptions(module_path='task_system_client.task_center.subscription'
 class Subscription(Queue):
     lock = Lock()
 
-    def __new__(cls, url, **kwargs):
+    def __new__(cls, url):
         if cls is Subscription:
             load_subscriptions()
             for x in Subscription.__subclasses__():
@@ -41,10 +42,9 @@ class Subscription(Queue):
             return obj
         return super(Subscription, cls).__new__(cls)
 
-    def __init__(self, url, **kwargs):
-        self.url = url
-        self.kwargs = kwargs
-        self.validate_kwargs(kwargs)
+    def __init__(self, url):
+        self.url, self.kwargs = url_utils.get_split_url_params(url)
+        self.validate_kwargs(self.kwargs)
         super(Subscription, self).__init__()
 
     @classmethod

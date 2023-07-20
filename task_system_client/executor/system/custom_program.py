@@ -1,3 +1,4 @@
+import locale
 import os
 import zipfile
 import shutil
@@ -8,7 +9,7 @@ from executor.base import NoRetryException
 from task_system_client.executor import Executor
 from task_system_client.executor.system import SystemExecutor
 
-SYS_ENCODING = sys.getdefaultencoding()
+SYS_ENCODING = locale.getpreferredencoding()
 
 
 TMP_DIR = os.path.join(os.getcwd(), 'tmp')

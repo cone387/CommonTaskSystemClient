@@ -9,26 +9,23 @@ from urllib.parse import urlparse
 
 class SqlSubscription(Subscription):
 
-    def __init__(self, url, command=None, **kwargs):
+    def __init__(self, url):
         """
         :param url: example mysql+pymysql://root:wxnacy@127.0.0.1:3306/study?charset=utf8mb4
-        :param kwargs:
         """
-        assert command, 'command is required'
+        super(SqlSubscription, self).__init__(url)
+        self.command = self.kwargs.pop('command')
         conf = urlparse(url)
-        query = {x.split('=')[0]: x.split('=')[1] for x in str(conf.query).split('&')}
         self.connection = pymysql.connect(
             host=conf.hostname,
             port=conf.port,
             user=conf.username,
             passwd=conf.password,
             db=conf.path[1:],
-            **query
+            **self.kwargs
             # cursorclass=pymysql.cursors.DictCursor
         )
         self.cursor = self.connection.cursor()
-        self.command = command
-        super(SqlSubscription, self).__init__(url, **kwargs)
 
     @classmethod
     def validate_kwargs(cls, kwargs):

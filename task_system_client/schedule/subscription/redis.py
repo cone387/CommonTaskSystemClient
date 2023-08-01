@@ -5,7 +5,7 @@ except ImportError:
     raise ImportError('redis is required for redis subscription, please install redis first')
 import json
 from .base import Subscription
-from ..task import TaskSchedule
+from task_system_client.schedule import Schedule
 
 
 class RedisSubscription(Subscription):
@@ -32,7 +32,7 @@ class RedisSubscription(Subscription):
     def request(self):
         o = self.client.lpop(self.queue_name)
         if o:
-            return TaskSchedule(json.loads(o))
+            return Schedule(json.loads(o))
         return o
 
     def stop(self):

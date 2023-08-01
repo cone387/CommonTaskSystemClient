@@ -1,12 +1,12 @@
 from task_system_client.executor import BaseExecutor, Executor
-from task_system_client.task_center.task import TaskSchedule
-
-
-class ExecutorNotFound(KeyError):
-    pass
+from task_system_client.schedule import Schedule
 
 
 class DispatchError(Exception):
+    pass
+
+
+class ExecutorNotFound(DispatchError):
     pass
 
 
@@ -18,26 +18,26 @@ class BaseDispatcher:
             raise ValueError(f'Dispatcher unique_keys({self.unique_keys}) must be equal '
                              f'to Executor.unique_keys({Executor.unique_keys})')
 
-    def dispatch(self, schedule: TaskSchedule) -> 'BaseExecutor':
+    def dispatch(self, schedule: Schedule) -> 'BaseExecutor':
         raise NotImplementedError
 
 
 class Dispatcher(BaseDispatcher):
 
-    def dispatch(self, schedule: TaskSchedule) -> 'BaseExecutor':
+    def dispatch(self, schedule: Schedule) -> 'BaseExecutor':
         params = self.get_dispatch_params(schedule)
         try:
             return Executor(schedule=schedule, **params)
         except KeyError:
-            error = 'Dispatch error, no executor for task: %s' % schedule
+            raise ExecutorNotFound('Dispatch error, no executor for task: %s' % schedule)
         except Exception as e:
-            error = 'Dispatch error, %s' % e
-        executor = BaseExecutor(schedule=schedule)
-        executor.result = {"error": error}
-        return executor
+            raise DispatchError('Dispatch error, %s' % e)
+        # executor = BaseExecutor(schedule=schedule)
+        # executor.result = {"error": error}
+        # return executor
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         raise NotImplementedError
 
 
@@ -45,7 +45,7 @@ class FullCategoryAndNameDispatcher(Dispatcher):
     unique_keys = ['category', 'name']
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         task = schedule.task
         parent = task.parent
         names = [task.name]
@@ -74,7 +74,7 @@ class CategoryAndNameDispatcher(Dispatcher):
     unique_keys = ['category', 'name']
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         task = schedule.task
         return {
             "name": task.name,
@@ -86,7 +86,7 @@ class NameDispatcher(Dispatcher):
     unique_keys = ['name']
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         task = schedule.task
         return {
             "name": task.name,
@@ -97,7 +97,7 @@ class CategoryParentNameDispatcher(Dispatcher):
     unique_keys = ['category', 'parent', 'name']
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         task = schedule.task
         return {
             "name": task.name,
@@ -109,7 +109,7 @@ class CategoryParentNameDispatcher(Dispatcher):
 class CategoryParentAndOptionalNameDispatcher(BaseDispatcher):
     unique_keys = ['category', 'parent', 'name']
 
-    def dispatch(self, schedule: TaskSchedule) -> 'BaseExecutor':
+    def dispatch(self, schedule: Schedule) -> 'BaseExecutor':
         params = self.get_dispatch_params(schedule)
         try:
             return Executor(schedule=schedule, **params)
@@ -118,17 +118,17 @@ class CategoryParentAndOptionalNameDispatcher(BaseDispatcher):
                 params['name'] = None
                 return Executor(schedule=schedule, **params)
             except KeyError:
-                error = 'Dispatch error, no executor for task: %s' % schedule
+                raise ExecutorNotFound('Dispatch error, no executor for task: %s' % schedule)
             except Exception as e:
-                error = 'Dispatch error, %s' % e
+                raise DispatchError('Dispatch error, %s' % e)
         except Exception as e:
-            error = 'Dispatch error, %s' % e
-        executor = BaseExecutor(schedule=schedule)
-        executor.result = {"error": error}
-        return executor
+            raise DispatchError('Dispatch error, %s' % e)
+        # executor = BaseExecutor(schedule=schedule)
+        # executor.result = {"error": error}
+        # return executor
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         task = schedule.task
         return {
             "name": task.name,
@@ -141,7 +141,7 @@ class ParentAndOptionalNameDispatcher(CategoryParentAndOptionalNameDispatcher):
     unique_keys = ['parent', 'name']
 
     @staticmethod
-    def get_dispatch_params(schedule: TaskSchedule):
+    def get_dispatch_params(schedule: Schedule):
         task = schedule.task
         return {
             "name": task.name,

@@ -8,7 +8,7 @@ import time
 from sys import stdout
 from typing import Union
 from .base import Subscription
-from ..task import TaskSchedule
+from task_system_client.schedule import Schedule
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +19,10 @@ class HttpSubscription(Subscription):
     def processable(cls, url) -> bool:
         return url.startswith('http')
 
-    def request(self) -> Union[TaskSchedule, None]:
+    def request(self) -> Union[Schedule, None]:
         response = requests.get(self.url, timeout=5, **self.kwargs)
         if response.status_code == 200:
-            return TaskSchedule(response.json())
+            return Schedule(response.json())
         elif response.status_code == 202:
             stdout.write('[%s]no more schedule now, wait 1 second...\r' % time.strftime('%Y-%m-%d %H:%M:%S'))
             stdout.flush()

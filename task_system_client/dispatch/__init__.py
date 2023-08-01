@@ -2,7 +2,8 @@ from .dispatcher import (
     Dispatcher, NameDispatcher, CategoryAndNameDispatcher,
     CategoryParentNameDispatcher, FullCategoryAndNameDispatcher,
     ParentAndOptionalNameDispatcher,
-    CategoryParentAndOptionalNameDispatcher
+    CategoryParentAndOptionalNameDispatcher,
+    DispatchError, ExecutorNotFound
 )
 from task_system_client.utils.class_loader import load_class
 

@@ -1,16 +1,16 @@
 from queue import Queue, Empty
 from threading import Lock
-from ..task import TaskSchedule
 from typing import Union
 from task_system_client.settings import logger, SEMAPHORE
 from task_system_client.utils import url as url_utils
+from ..base import Schedule
 
 
 class SubscriptionError(Exception):
     pass
 
 
-def load_subscriptions(module_path='task_system_client.task_center.subscription'):
+def load_subscriptions(module_path='task_system_client.schedule.subscription'):
     import importlib
     from pathlib import Path
     try:
@@ -22,7 +22,8 @@ def load_subscriptions(module_path='task_system_client.task_center.subscription'
         if module_file.name == "__init__.py":
             package = module_file.parent
             for p in package.glob('*'):
-                if (p.is_dir() and (p / '__init__.py').exists()) or (p.suffix == '.py' and (not p.stem.startswith('_'))):
+                if (p.is_dir() and (p / '__init__.py').exists()) or \
+                        (p.suffix == '.py' and (not p.stem.startswith('_'))):
                     load_subscriptions(module_path + '.' + p.stem)
     module.__loaded__ = True
 
@@ -55,10 +56,10 @@ class Subscription(Queue):
     def processable(cls, url) -> bool:
         raise NotImplementedError
 
-    def request(self) -> Union[TaskSchedule, None]:
+    def request(self) -> Union[Schedule, None]:
         raise NotImplementedError
 
-    def try_get(self, block=False) -> Union[TaskSchedule, None]:
+    def try_get(self, block=False) -> Union[Schedule, None]:
         try:
             return self.get(block=block)
         except Empty:

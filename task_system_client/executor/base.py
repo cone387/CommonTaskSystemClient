@@ -1,4 +1,5 @@
 from cone.utils.classes import ClassManager
+from task_system_client.schedule import Schedule
 from enum import Enum
 
 
@@ -26,18 +27,29 @@ NameExecutor = ClassManager(
 )
 
 
-# 执行成功了，但是没有结果
-class EmptyResult(Exception):
-    pass
+class AttributeDict(dict):
+
+    def __setattr__(self, key, value):
+        self[key] = value
+        super(AttributeDict, self).__setattr__(key, value)
 
 
-# 无需重试的异常, 发生此异常时, 任务将不会重试, 此任务状态为N
-class NoRetryException(Exception):
-    pass
+class ScheduleLogResult(AttributeDict):
+    def __init__(self):
+        super().__init__()
+        self.logs = None
 
 
-class TimeoutException(Exception):
-    pass
+class ScheduleLog(AttributeDict):
+
+    def __init__(self, schedule: Schedule):
+        super().__init__()
+        self.schedule = schedule.id
+        self.status = ExecuteStatus.INIT
+        self.result = ScheduleLogResult()
+        self.queue = schedule.queue
+        self.schedule_time = schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S')
+        self.generator = schedule.generator
 
 
 class ExecuteStatus(str, Enum):
@@ -49,3 +61,27 @@ class ExecuteStatus(str, Enum):
     FAILED = 'F'
     DONE = 'D'
     TIMEOUT = 'T'
+
+
+# 执行成功了，但是没有结果
+class EmptyResult(Exception):
+
+    @property
+    def status(self):
+        return ExecuteStatus.EMPTY
+
+
+# 无需重试的异常, 发生此异常时, 任务将不会重试, 此任务状态为N
+class NoRetryException(Exception):
+
+    @property
+    def status(self):
+        return ExecuteStatus.ERROR_BUT_NO_RETRY
+
+
+class TimeoutException(Exception):
+
+    @property
+    def status(self):
+        return ExecuteStatus.TIMEOUT
+

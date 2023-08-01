@@ -1,5 +1,5 @@
 import os
-from task_system_client.subscriber import create_subscriber
+from task_system_client.client import create_client
 from task_system_client.settings import args
 from cone.hooks.exception import setSysExceptHook
 
@@ -31,13 +31,13 @@ def start_task_system():
         assert os.path.exists(args.settings), f'{args.settings} not exists'
         os.environ['TASK_CLIENT_SETTINGS_MODULE'] = args.settings
 
-    def stop_subscriber(excType, excValue, tb):
+    def stop_client(excType, excValue, tb):
         subscriber.stop()
 
-    subscriber = create_subscriber()
+    subscriber = create_client()
     subscriber.start()
 
-    setSysExceptHook(stop_subscriber)
+    setSysExceptHook(stop_client)
 
 
 if __name__ == '__main__':

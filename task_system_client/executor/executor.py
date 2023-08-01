@@ -1,5 +1,5 @@
-from task_system_client.task_center.task import TaskSchedule
-from task_system_client.executor.base import ExecuteStatus
+from task_system_client.schedule import Schedule
+from task_system_client.executor import ExecuteStatus, ScheduleLog
 from task_system_client.callback import Callback
 import time
 
@@ -9,53 +9,43 @@ class BaseExecutor(object):
     parent = None
     name = None
 
-    def __init__(self, schedule: TaskSchedule):
+    def __init__(self, schedule: Schedule):
         self.schedule = schedule
         self.task = schedule.task
-        self.result = {
-            'generator': self.schedule.generator,
-        }
-        self.execute_status = ExecuteStatus.INIT
+        self.log = ScheduleLog(schedule)
         self.create_time = time.time()
         self.ttl = self.task.config.get('ttl', 60 * 60)
+
+    @property
+    def status(self):
+        return self.log.status
+
+    @status.setter
+    def status(self, value):
+        self.log.status = value
 
     @property
     def timeout(self):
         return time.time() - self.create_time > self.ttl
 
-    def generate_log(self):
-        return {
-            "schedule": self.schedule.schedule_id,
-            "status": self.execute_status.value,
-            "result": self.result,
-            "queue": self.schedule.queue,
-            "schedule_time": self.schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S'),
-        }
-
     def run(self):
         raise NotImplementedError
 
-    def on_success(self):
-        pass
-
-    def on_error(self, error):
-        pass
-
-    def on_done(self):
+    def on_done(self, exception=None):
         schedule = self.schedule
         if schedule.callback:
             trigger_event = schedule.callback['trigger_event']
-            if trigger_event == ExecuteStatus.DONE or trigger_event == self.execute_status:
+            if trigger_event == ExecuteStatus.DONE or trigger_event == self.status:
                 callback = Callback(
                     name=schedule.callback['name'],
                     config=schedule.callback['config'],
                     executor=self
                 )
                 callback.start()
-        self.execute_status = ExecuteStatus.DONE
+        self.status = ExecuteStatus.DONE
 
     def start(self):
-        self.execute_status = ExecuteStatus.RUNNING
+        self.status = ExecuteStatus.RUNNING
         self.run()
 
     def __hash__(self):

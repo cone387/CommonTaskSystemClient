@@ -1,6 +1,6 @@
 from cone.utils.classes import ClassManager
 
-Callback = ClassManager(path='task_system_client.callback.callbacks', name='CallbackManager', unique_keys=['name'])
+Callback = ClassManager(name='CallbackManager', unique_keys=['name'])
 
 
 class BaseCallback:

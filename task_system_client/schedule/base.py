@@ -3,17 +3,9 @@ from datetime import datetime
 
 class Category:
     def __init__(self, category):
-        if category is None:
-            self.name = None
-            self.parent = None
-            self.config = {}
-        else:
-            self.name = category['name']
-            self.parent = Category(category['parent'])
-            self.config = category.get('config') or {}
-
-    def __bool__(self):
-        return bool(self.name)
+        self.name = category['name']
+        self.parent = Category(category['parent']) if category.get('parent') else None
+        self.config = category.get('config') or {}
 
 
 class Task:
@@ -32,10 +24,10 @@ class Task:
     __repr__ = __str__
 
 
-class TaskSchedule:
+class Schedule:
 
     def __init__(self, schedule):
-        self.schedule_id = schedule['id']
+        self.id = schedule['id']
         self.schedule_time = datetime.strptime(schedule['schedule_time'], '%Y-%m-%d %H:%M:%S')
         self.callback = schedule['callback']
         self.task = Task(schedule['task'])
@@ -43,14 +35,15 @@ class TaskSchedule:
         self.config = schedule.get('config') or {}
         self.generator = schedule.get('generator', None)
         self.last_log = schedule.get('last_log', None)
+        self.preserve_log = schedule.get('preserve_log', True)
         self.content = schedule
 
     def __str__(self):
-        return 'TaskSchedule(id=%s, time=%s, task=%s)' % (
-            self.schedule_id, self.schedule_time, self.task
+        return 'Schedule(id=%s, time=%s, task=%s)' % (
+            self.id, self.schedule_time, self.task
         )
 
     __repr__ = __str__
 
     def __hash__(self):
-        return hash("%s-%s" % (self.schedule_id, self.schedule_time))
+        return hash("%s-%s" % (self.id, self.schedule_time))

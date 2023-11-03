@@ -4,7 +4,8 @@ MAINTAINER cone
 
 ENV TZ=Asia/Shanghai
 ENV LANG zh_CN.UTF-8
-ENV PROJECT_DIR /home/admin/task-system-client
+ENV PROJECT_DIR /home/admin/
+ENV PROJECT_NAME task-system-client
 
 # 1. 安装Python3.11
 RUN apt-get update -y
@@ -16,19 +17,17 @@ RUN apt-get install curl -y
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python get-pip.py
 
-COPY . $PROJECT_DIR
+WORKDIR $PROJECT_DIR/$PROJECT_NAME
 
-WORKDIR $PROJECT_DIR
+COPY . $PROJECT_DIR/$PROJECT_NAME
 
 ## 2. 安装依赖
 #RUN pip install common-task-system-client
 
-RUN python setup.py build
+RUN pip config --global set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install -r requirements.txt
+
 RUN python setup.py install
 
-RUN pip config --global set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install py-cone>=1.0.8
-RUN pip install requests
-RUN pip install PyMySQL>=1.0.2
-RUN pip install redis
-RUN pip install DBUtils
+# 这里需要返回到上级目录，如果在task-system-client目录下，会导致后面的task_system_client是从该目录下查找引起异常
+WORKDIR $PROJECT_DIR

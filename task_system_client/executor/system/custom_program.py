@@ -5,9 +5,12 @@ import shutil
 import subprocess
 import sys
 import docker
-from executor.base import NoRetryException
+import requests
+
+from task_system_client.executor.base import NoRetryException
 from task_system_client.executor import Executor
 from task_system_client.executor.system import SystemExecutor
+from task_system_client.settings import PROGRAM_DOWNLOAD_URL
 
 SYS_ENCODING = locale.getpreferredencoding()
 
@@ -51,7 +54,6 @@ class ProgramExecutor:
             self.args = [x.strip() for x in args.split(' ')]
         else:
             self.args = []
-        self.logs = []
 
     def prepare(self):
         pass
@@ -60,28 +62,28 @@ class ProgramExecutor:
         pass
 
     def run(self):
-        succeed, self.logs = run_in_subprocess(self.entrypoint)
+        succeed, logs = run_in_subprocess(self.entrypoint)
         if not succeed:
-            raise NoRetryException('Failed to run %s, %s' % (self.file, '\n'.join(self.logs)))
+            raise NoRetryException('Failed to run %s, %s' % (self.file, '\n'.join(logs)))
+        return logs
 
     @property
     def entrypoint(self):
         raise NotImplementedError
 
 
-class Docker:
+class Container:
 
     def __init__(self, program: ProgramExecutor, image):
         self.program = program
         self.image = image
         self.working_path = '/home/admin/task-system-client'
-        self.logs = []
 
     def run(self):
         client = docker.from_env()
         # auto_remove similar to --rm
         # detach similar to -d, so detach and auto_remove can't be True at the same time
-        self.logs = client.containers.run(
+        return client.containers.run(
             self.image,
             command=self.program.entrypoint.replace(self.program.working_path, self.working_path).replace(os.sep, '/'),
             # auto_remove=True,
@@ -144,31 +146,45 @@ class ShellExecutor(ProgramExecutor):
 class CustomProgramExecutor(SystemExecutor):
     parent = '自定义程序'
 
+    @staticmethod
+    def download(schedule, program_file):
+        try:
+            response = requests.get(f'{PROGRAM_DOWNLOAD_URL}{schedule.task.id}/', stream=True)
+            if response.status_code != 200:
+                raise NoRetryException('Failed to download program: %s' % response.json())
+            with open(program_file, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+        except Exception as e:
+            raise NoRetryException('Failed to download program: %s' % e)
+
     def run(self):
         custom_program = self.schedule.task.config.get('custom_program')
-        file = custom_program.get('executable')
         args = custom_program.get('args')
-        docker_image = custom_program.get('docker_image') or 'cone387/common-task-system-client'
-        run_in_docker = custom_program.get('run_in_docker', False)
-        if not os.path.exists(file):
-            raise NoRetryException('File(%s) not found' % file)
+        file = custom_program.get('executable')
+        docker_image = custom_program.get('docker_image') or 'cone387/common-task-system-client:latest'
+        run_in_container = custom_program.get('run_in_container', True)
         # prepare program working path
         working_path = os.path.join(TMP_DIR, str(self.schedule.task.id))
         if not os.path.exists(working_path):
             os.mkdir(working_path)
+
+        # download program file
+        program_file = os.path.join(working_path, os.path.basename(file))
+        self.download(self.schedule, program_file)
         try:
-            # prepare program files
-            program_file = shutil.copy(file, os.path.join(working_path, os.path.basename(file)))
             program = ProgramExecutor(working_path, file=program_file, args=args)
             program.prepare()
-            if run_in_docker:
-                container = Docker(program, image=docker_image)
-                container.run()
-                logs = container.logs
+            if run_in_container:
+                container = Container(program, image=docker_image)
+                logs = container.run()
             else:
                 program.assert_runnable()
                 logs = program.run()
-            # clean up
+        except Exception as e:
+            raise NoRetryException('Failed to run program: %s' % e)
         finally:
+            # clean up
             shutil.rmtree(working_path)
         return logs

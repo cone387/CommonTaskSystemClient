@@ -3,9 +3,9 @@ from setuptools import setup, find_packages
 setup(
     name='common-task-system-client',
     packages=find_packages(),
-    version='1.1.4',
+    version='1.1.5',
     install_requires=[
-        "py-cone>=1.0.2",
+        "py-cone>=1.1.2",
     ],
     # extras_require={
     # },

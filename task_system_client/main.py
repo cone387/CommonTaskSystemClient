@@ -6,6 +6,9 @@ from cone.hooks.exception import setSysExceptHook
 
 def start_task_system():
     if args.path:
+        """
+            从指定目录中加载Executor
+        """
         import sys
         import shutil
         from task_system_client.executor import Executor
@@ -27,9 +30,6 @@ def start_task_system():
             path_name = os.path.basename(path)
             shutil.copy(path, os.path.join(executor_path, path_name))
             Executor.register_from('tmp_executors.%s' % path_name)
-    if args.settings:
-        assert os.path.exists(args.settings), f'{args.settings} not exists'
-        os.environ['TASK_CLIENT_SETTINGS_MODULE'] = args.settings
 
     def stop_client(excType, excValue, tb):
         subscriber.stop()
@@ -42,4 +42,3 @@ def start_task_system():
 
 if __name__ == '__main__':
     start_task_system()
-

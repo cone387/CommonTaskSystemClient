@@ -58,6 +58,7 @@ class ExecuteStatus(str, Enum):
     SUCCEED = 'S'
     EMPTY = 'E'
     ERROR_BUT_NO_RETRY = 'N'
+    PARTIAL_FAILED = 'P'
     FAILED = 'F'
     DONE = 'D'
     TIMEOUT = 'T'
@@ -69,6 +70,14 @@ class EmptyResult(Exception):
     @property
     def status(self):
         return ExecuteStatus.EMPTY
+
+
+# 部分失败，部分成功
+class PartialFailed(Exception):
+
+    @property
+    def status(self):
+        return ExecuteStatus.PARTIAL_FAILED.value
 
 
 # 无需重试的异常, 发生此异常时, 任务将不会重试, 此任务状态为N

@@ -3,10 +3,7 @@ import requests
 import json
 from task_system_client.utils import url as url_utils
 from task_system_client.utils.class_loader import load_class
-from task_system_client.settings import LOG_ENGINE
-
-
-logger = logging.getLogger(__name__)
+from task_system_client.settings import LOG_ENGINE, logger
 
 
 class BaseLogEngine:

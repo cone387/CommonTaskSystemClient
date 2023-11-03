@@ -42,7 +42,6 @@ class BaseExecutor(object):
                     executor=self
                 )
                 callback.start()
-        self.status = ExecuteStatus.DONE
 
     def start(self):
         self.status = ExecuteStatus.RUNNING

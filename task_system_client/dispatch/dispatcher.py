@@ -15,8 +15,8 @@ class BaseDispatcher:
 
     def __init__(self):
         if sorted(self.unique_keys) != sorted(Executor.unique_keys):
-            raise ValueError(f'Dispatcher unique_keys({self.unique_keys}) must be equal '
-                             f'to Executor.unique_keys({Executor.unique_keys})')
+            raise ValueError(f'Dispatcher(name={self.__class__.__name__}).unique_keys({self.unique_keys}) must be '
+                             f'equal to Executor(name={Executor.name}).unique_keys({Executor.unique_keys})')
 
     def dispatch(self, schedule: Schedule) -> 'BaseExecutor':
         raise NotImplementedError

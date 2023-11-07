@@ -68,7 +68,7 @@ def register_client():
 
 def stop_client():
     try:
-        response = requests.post(f"{CLIENT_ACTION_URL}stop/", params={'id': CLIENT_ID})
+        response = requests.post(f"{CLIENT_ACTION_URL}stop/", params={'id': CLIENT_ID, 'queue': CONSUME_QUEUE_NAME})
         if response.status_code == 200:
             logger.info("stop succeed: %s", response.json())
         else:
@@ -94,7 +94,7 @@ def read_log():
 
 def send_log():
     try:
-        response = requests.post(f"{CLIENT_ACTION_URL}log/", params={'id': CLIENT_ID},
+        response = requests.post(f"{CLIENT_ACTION_URL}log/", params={'id': CLIENT_ID, 'queue': CONSUME_QUEUE_NAME},
                                  data={'log': read_log()})
         if response.status_code == 200:
             logger.info("log succeed: %s", response.json())

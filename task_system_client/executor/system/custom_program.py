@@ -89,6 +89,7 @@ class Container:
             # auto_remove=True,
             remove=True,
             volumes=["%s:%s" % (self.program.working_path, self.working_path)],
+            working_dir=self.working_path,
             detach=False
         ).decode()
 

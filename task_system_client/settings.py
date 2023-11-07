@@ -1,6 +1,6 @@
 import logging
 import argparse
-import uuid
+import time
 import re
 import os
 
@@ -33,7 +33,7 @@ CLIENT_ACTION_URL = None
 CONSUME_QUEUE_NAME = None
 
 
-CLIENT_ID = os.environ.get('TASK_CLIENT_ID', str(uuid.uuid4()))
+CLIENT_ID = os.environ.get('TASK_CLIENT_ID', hex(int(time.time() * 1000))[2:])
 
 GROUP = 'default'
 

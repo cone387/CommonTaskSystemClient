@@ -135,7 +135,7 @@ class ZipExecutor(ProgramExecutor):
 class ShellExecutor(ProgramExecutor):
 
     def assert_runnable(self):
-        assert sys.platform == 'win32', 'shell is not supported in windows'
+        assert sys.platform != 'win32', 'shell is not supported in windows'
 
     @property
     def entrypoint(self):

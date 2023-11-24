@@ -83,9 +83,10 @@ function deploy_to_server() {
       echo "cp -f $SETTING $server_path"
       cp -f $SETTING $server_path
     fi
-    VOLUME="-v $server_path:/home/$PROJECT/configs"
-    ENV="-e TASK_CLIENT_SETTINGS_MODULE=configs.$(basename $SETTING .py)";
+    VOLUME="-v $server_path:$server_path"
+    ENV="-e TASK_CLIENT_SETTINGS_MODULE=$server_path/$(basename $SETTING .py)";
   fi
+  VOLUME="$VOLUME -v /tmp/$PROJECT:/home/admin/tmp"
   echo "Deploying to server..."
   cid=`docker ps -a | grep $PROJECT | awk '{print $1}'`
   for c in $cid

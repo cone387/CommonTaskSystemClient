@@ -88,9 +88,12 @@ if env_settings:
             os.makedirs(tmp_path)
         tmp_settings = 'client_%s' % CLIENT_ID[:8]
         with open(env_settings, 'r', encoding='utf-8') as f:
-            with open(os.path.join(tmp_path, f'{tmp_settings}.py'), 'w', encoding='utf-8') as f2:
+            tmp_setting_file = os.path.join(tmp_path, f'{tmp_settings}.py')
+            with open(tmp_setting_file, 'w', encoding='utf-8') as f2:
                 f2.write(f.read())
         env_settings = f'task_system_client.tmp.{tmp_settings}'
+    else:
+        tmp_setting_file = None
     settings = importlib.import_module(env_settings)
     for key in dir(settings):
         if key.isupper():
@@ -99,6 +102,9 @@ if env_settings:
             globals()[key] = new
             logger.info("override settings: %s: %s -> %s" % (key, old, new))
     logger.info("load settings from %s" % env_settings)
+    # 删除临时文件
+    if tmp_setting_file:
+        os.remove(tmp_setting_file)
 
 
 # check params

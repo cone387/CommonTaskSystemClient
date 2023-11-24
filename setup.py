@@ -17,6 +17,7 @@ setup(
     entry_points={
         'console_scripts': [
             'common-task-system-client=task_system_client.main:start_task_system',
+            'cts-execute=task_system_client.custom_program:start_custom_program',
         ],
     },
 )
